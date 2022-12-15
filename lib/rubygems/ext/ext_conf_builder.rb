@@ -9,15 +9,7 @@
 class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
   def self.build(extension, dest_path, results, args=[], lib_dir=nil, extension_dir=Dir.pwd)
     require "fileutils"
-    require "tempfile"
-
-    tmp_dest = Dir.mktmpdir(".gem.", extension_dir)
-
-    # Some versions of `mktmpdir` return absolute paths, which will break make
-    # if the paths contain spaces.
-    #
-    # As such, we convert to a relative path.
-    tmp_dest_relative = get_relative_path(tmp_dest.clone, extension_dir)
+    require "pathname"
 
     destdir = ENV["DESTDIR"]
 
@@ -39,35 +31,22 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
 
       ENV["DESTDIR"] = nil
 
-      make dest_path, results, extension_dir, tmp_dest_relative
-
-      full_tmp_dest = File.join(extension_dir, tmp_dest_relative)
+      rel_dest_path = Pathname.new(dest_path).relative_path_from(Pathname.new(extension_dir))
+      make rel_dest_path, results, extension_dir
 
       # TODO: remove in RubyGems 4
       if Gem.install_extension_in_lib && lib_dir
         FileUtils.mkdir_p lib_dir
-        entries = Dir.entries(full_tmp_dest) - %w[. ..]
-        entries = entries.map {|entry| File.join full_tmp_dest, entry }
+        entries = Dir.entries(dest_path) - %w[. ..]
+        entries = entries.map {|entry| File.join dest_path, entry }
         FileUtils.cp_r entries, lib_dir, remove_destination: true
       end
 
-      FileUtils::Entry_.new(full_tmp_dest).traverse do |ent|
-        destent = ent.class.new(dest_path, ent.rel)
-        destent.exist? || FileUtils.mv(ent.path, destent.path)
-      end
-
-      make dest_path, results, extension_dir, tmp_dest_relative, ["clean"]
+      make dest_path, results, extension_dir, ["clean"]
     ensure
       ENV["DESTDIR"] = destdir
     end
 
     results
-  ensure
-    FileUtils.rm_rf tmp_dest if tmp_dest
-  end
-
-  def self.get_relative_path(path, base)
-    path[0..base.length - 1] = "." if path.start_with?(base)
-    path
   end
 end
