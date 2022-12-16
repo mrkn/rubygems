@@ -9,7 +9,6 @@
 class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
   def self.build(extension, dest_path, results, args=[], lib_dir=nil, extension_dir=Dir.pwd)
     require "fileutils"
-    require "pathname"
 
     destdir = ENV["DESTDIR"]
 
@@ -31,7 +30,7 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
 
       ENV["DESTDIR"] = nil
 
-      rel_dest_path = Pathname.new(dest_path).relative_path_from(Pathname.new(extension_dir))
+      rel_dest_path = get_relative_path(dest_path, extension_dir)
       make rel_dest_path, results, extension_dir
 
       # TODO: remove in RubyGems 4
@@ -48,5 +47,14 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
     end
 
     results
+  end
+
+  def self.get_relative_path(path, base)
+    path.split("/").zip(base.split("/")).inject(String.new) do |result, (path_component, base_component)|
+      next result if path_component == base_component
+      result.prepend("../") if base_component
+      result.concat("#{path_component}/") if path_component
+      result
+    end
   end
 end
