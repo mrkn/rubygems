@@ -54,7 +54,7 @@ RSpec.describe "global gem caching" do
     end
 
     it "uses a shorter path for the cache to not hit filesystem limits" do
-      install_gemfile <<-G, :artifice => "compact_index", :verbose => true
+      install_gemfile <<-G, artifice: "compact_index", verbose: true
         source "http://#{"a" * 255}.test"
         gem "rack"
       G
