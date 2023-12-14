@@ -187,6 +187,27 @@ if File.exist?("tool/automatiek.rake")
     lib.license_path = "LICENSE.txt"
   end
 
+  desc "Vendor a specific version of rqrcode_core to rubygems"
+  Automatiek::RakeTask.new("rqrcode_core") do |lib|
+    lib.version = "v1.2.0"
+    lib.download = { github: "https://github.com/whomwah/rqrcode_core" }
+    lib.namespace = "RQRCodeCore"
+    lib.prefix = "Gem"
+    lib.vendor_lib = "lib/rubygems/rqrcode_core"
+    lib.license_path = "LICENSE.txt"
+  end
+
+  timeout_dep = ->(lib) {
+    lib.dependency("timeout") do |timeout|
+      timeout.version = "v0.4.1"
+      timeout.download = { github: "https://github.com/ruby/timeout" }
+      timeout.namespace = "Timeout"
+      timeout.prefix = "Gem"
+      timeout.vendor_lib = "lib/rubygems/timeout"
+      timeout.license_path = "LICENSE.txt"
+    end
+  }
+
   # We currently include the following changes over the official version:
   # * Avoid requiring the optional `net-http-pipeline` dependency, so that its version can be selected by end users.
   # * Require vendored net/http version RubyGems if available, otherwise the stdlib version.
@@ -207,14 +228,7 @@ if File.exist?("tool/automatiek.rake")
       sublib.vendor_lib = "bundler/lib/bundler/vendor/connection_pool"
       sublib.license_path = "LICENSE"
 
-      sublib.dependency("timeout") do |subsublib|
-        subsublib.version = "v0.4.1"
-        subsublib.download = { github: "https://github.com/ruby/timeout" }
-        subsublib.namespace = "Timeout"
-        subsublib.prefix = "Gem"
-        subsublib.vendor_lib = "lib/rubygems/timeout"
-        subsublib.license_path = "LICENSE.txt"
-      end
+      timeout_dep.call(sublib)
     end
 
     lib.dependency("uri") do |sublib|
@@ -242,24 +256,10 @@ if File.exist?("tool/automatiek.rake")
         subsublib.vendor_lib = "lib/rubygems/net-protocol"
         subsublib.license_path = "LICENSE.txt"
 
-        subsublib.dependency("timeout") do |ssslib|
-          ssslib.version = "v0.4.1"
-          ssslib.download = { github: "https://github.com/ruby/timeout" }
-          ssslib.namespace = "Timeout"
-          ssslib.prefix = "Gem"
-          ssslib.vendor_lib = "lib/rubygems/timeout"
-          ssslib.license_path = "LICENSE.txt"
-        end
+        timeout_dep.call(subsublib)
       end
 
-      sublib.dependency("timeout") do |subsublib|
-        subsublib.version = "v0.4.1"
-        subsublib.download = { github: "https://github.com/ruby/timeout" }
-        subsublib.namespace = "Timeout"
-        subsublib.prefix = "Gem"
-        subsublib.vendor_lib = "lib/rubygems/timeout"
-        subsublib.license_path = "LICENSE.txt"
-      end
+      timeout_dep.call(sublib)
 
       sublib.dependency("resolv") do |subsublib|
         subsublib.version = "v0.2.2"
@@ -269,14 +269,7 @@ if File.exist?("tool/automatiek.rake")
         subsublib.vendor_lib = "lib/rubygems/resolv"
         subsublib.license_path = "LICENSE.txt"
 
-        subsublib.dependency("timeout") do |ssslib|
-          ssslib.version = "v0.4.1"
-          ssslib.download = { github: "https://github.com/ruby/timeout" }
-          ssslib.namespace = "Timeout"
-          ssslib.prefix = "Gem"
-          ssslib.vendor_lib = "lib/rubygems/timeout"
-          ssslib.license_path = "LICENSE.txt"
-        end
+        timeout_dep.call(subsublib)
       end
     end
   end
