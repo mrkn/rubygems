@@ -17,6 +17,7 @@ module Bundler
         end
 
         MAX_CACHE_SLUG_SIZE = 255
+        private_constant :MAX_CACHE_SLUG_SIZE
 
         # @return [String] A slug suitable for use as a cache key for this
         #         remote.
